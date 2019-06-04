@@ -1,0 +1,84 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
+using Panacea.Core;
+using Panacea.Models;
+using Panacea.Modularity.Favorites;
+using Panacea.Modularity.UiManager;
+using Panacea.Modularity.UserAccount;
+using Panacea.Modules.Favorites.ViewModels;
+using Panacea.Multilinguality;
+
+namespace Panacea.Modules.Favorites
+{
+    public class FavoritesPlugin : IFavoritesPlugin, ICallablePlugin
+    {
+        public event EventHandler FavoritesChanged;
+        PanaceaServices _core;
+        private Translator _translator;
+        private FavoritesManager _manager;
+        public FavoritesPlugin(PanaceaServices core)
+        {
+            _core = core;
+            _core.UserService.UserLoggedIn += UserService_UserLoggedIn;
+            _core.UserService.UserLoggedOut += UserService_UserLoggedOut;
+            _translator = new Translator("Favorites");
+            _manager = new FavoritesManager(_core);
+        }
+        public IFavoritesManager GetManager()
+        {
+            return _manager;
+        }
+        private async Task UserService_UserLoggedIn(IUser user)
+        {
+            await _manager.UpdateFavorites();
+            return;
+        }
+        private async Task UserService_UserLoggedOut(IUser user)
+        {
+            _manager.Clear();
+            return;
+        }
+        public Task BeginInit()
+        {
+            return Task.CompletedTask;
+        }
+        public Task EndInit()
+        {
+            if (_core.UserService.User.Id != null)
+            {
+                try
+                {
+                    _manager.UpdateFavorites();
+                } catch (Exception e)
+                {
+                    _core.Logger.Error(this, e.Message);
+                }
+            }
+            return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            return;
+        }
+        public Task Shutdown()
+        {
+            return Task.CompletedTask;
+        }
+        public void Call()
+        {
+            if (_core.UserService.User.Id == null)
+            {
+                if(_core.TryGetUserAccountManager(out IUserAccountManager _userManager)){
+                    _userManager.RequestLoginAsync(_translator.Translate("You must create an account to view favorites"));
+                }
+            }
+            if (_core.TryGetUiManager(out IUiManager _ui)){
+                _ui.Navigate(new FavoritesListViewModel(_core, this));
+            }
+        }
+    }
+}
