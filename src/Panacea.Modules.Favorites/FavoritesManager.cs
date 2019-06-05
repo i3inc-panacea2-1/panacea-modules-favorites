@@ -128,20 +128,18 @@ namespace Panacea.Modules.Favorites
         {
             if (_favoritesResponse == null) return;
             var obj = JsonSerializer.DeserializeFromString<ServerResponse<List<PluginFavorites<T>>>>(_favoritesResponse);
+            List<ServerItem> itemList;
             if (obj.Result.Any(o => o.Name == pluginName))
             {
-                var itemList = obj.Result.First(o => o.Name == pluginName).Items.Cast<ServerItem>().ToList();
-                plugin.Favorites = itemList;
-                var pf = new PluginFavorites<ServerItem>() { Name = pluginName, Items = itemList };
-                cachedFavorites.Add(pf);
+                itemList = obj.Result.First(o => o.Name == pluginName).Items.Cast<ServerItem>().ToList();
             }
             else
             {
-                var itemList = new List<ServerItem>();
-                var pf = new PluginFavorites<ServerItem>() { Name = pluginName, Items = itemList };
-                plugin.Favorites = itemList;
-                cachedFavorites.Add(pf);
+                itemList = new List<ServerItem>();
             }
+            plugin.Favorites = itemList;
+            var pf = new PluginFavorites<ServerItem>() { Name = pluginName, Items = itemList };
+            cachedFavorites.Add(pf);
         }
 
         public async Task<bool> AddOrRemoveFavoriteAsync(string pluginName, ServerItem item)
