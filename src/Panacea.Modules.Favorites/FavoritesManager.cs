@@ -51,32 +51,46 @@ namespace Panacea.Modules.Favorites
         }
         private async Task<bool> FavoriteAddAsync(string pluginName, string id)
         {
-            ServerResponse res = await _core.HttpClient.GetObjectAsync<object>(
-                "set_favorites/",
-                postData: new List<KeyValuePair<string, string>>()
-                {
-                    new KeyValuePair<string, string>("plugin", pluginName),
-                    new KeyValuePair<string, string>("favorite", id),
-                });
-            if (!res.Success)
+            try
             {
-                _core.Logger.Error(this, res.Error);
+                ServerResponse res = await _core.HttpClient.GetObjectAsync<object>(
+                    "set_favorites/",
+                    postData: new List<KeyValuePair<string, string>>()
+                    {
+                        new KeyValuePair<string, string>("plugin", pluginName),
+                        new KeyValuePair<string, string>("favorite", id),
+                    });
+                if (!res.Success)
+                {
+                    throw new Exception(res.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _core.Logger.Error(this, ex.Message);
                 return false;
             }
             return true;
         }
         public async Task<bool> FavoriteRemoveAsync(string pluginName, string id)
         {
-            ServerResponse res = await _core.HttpClient.GetObjectAsync<object>(
-                "unset_favorites/",
-                postData: new List<KeyValuePair<string, string>>()
-                {
-                    new KeyValuePair<string, string>("plugin", pluginName),
-                    new KeyValuePair<string, string>("favorite", id),
-                });
-            if (!res.Success)
+            try
             {
-                _core.Logger.Error(this, res.Error);
+                ServerResponse res = await _core.HttpClient.GetObjectAsync<object>(
+                    "unset_favorites/",
+                    postData: new List<KeyValuePair<string, string>>()
+                    {
+                        new KeyValuePair<string, string>("plugin", pluginName),
+                        new KeyValuePair<string, string>("favorite", id),
+                    });
+                if (!res.Success)
+                {
+                    throw new Exception(res.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _core.Logger.Error(this, ex.Message);
                 return false;
             }
             return true;

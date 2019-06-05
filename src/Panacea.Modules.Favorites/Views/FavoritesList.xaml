@@ -27,7 +27,7 @@
             Columns="5"
             IsSearchable="True"
             ItemProvider="{Binding Provider}"
-            MaterialIcon="ic_favorite"
+            MaterialIcon="favorite"
             OpenItemCommand="{Binding RelativeSource={RelativeSource AncestorType=local:FavoritesList}, Path=DataContext.ItemClickCommand}"
             Ratio="1.15"
             Color="#009688">
@@ -36,14 +36,15 @@
                     <Grid>
                         <Button
                             Grid.Column="1"
+                            pcontrols:Material.AsyncCommand="{Binding RelativeSource={RelativeSource AncestorType=local:FavoritesList}, Path=DataContext.FavoriteClickCommand}"
                             pcontrols:Material.Icon="favorite_border"
                             Background="#F44336"
-                            Command="{Binding RelativeSource={RelativeSource AncestorType=local:FavoritesList}, Path=DataContext.FavoriteClickCommand}"
                             Style="{DynamicResource PrimaryButton}">
                             <Button.CommandParameter>
                                 <MultiBinding Converter="{StaticResource manyToOne}">
                                     <Binding />
-                                    <Binding Path="RefreshCommand" RelativeSource="{RelativeSource AncestorType=contentCtrl:LazyLoadingTabControl}" />
+                                    <!--<Binding Path="RefreshCommand" RelativeSource="{RelativeSource AncestorType=contentCtrl:LazyLoadingTabControl}" />-->
+                                    <Binding Path="DataContext.RefreshCommand" RelativeSource="{RelativeSource AncestorType=local:FavoritesList}" />
                                 </MultiBinding>
                             </Button.CommandParameter>
                         </Button>

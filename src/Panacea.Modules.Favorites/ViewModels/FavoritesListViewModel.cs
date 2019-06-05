@@ -38,10 +38,12 @@ namespace Panacea.Modules.Favorites.ViewModels
             Provider = new FavoritesLazyItemProvider(core, 10);
             _core = core;
             _plugin = plugin;
+            SetupCommands();
+            SetupCategories();
         }
         private void SetupCommands()
         {
-            FavoriteClickCommand = new RelayCommand(async (args) =>
+            FavoriteClickCommand = new AsyncCommand(async (args) =>
             {
                 var arr = args as object[];
                 if (Provider.SelectedCategory == null) return;
@@ -58,7 +60,8 @@ namespace Panacea.Modules.Favorites.ViewModels
                 {
                     await _plugin.GetManager().AddOrRemoveFavoriteAsync(pluginName, item);
                 }
-                (arr[1] as ICommand)?.Execute(null);
+                Provider.Refresh();
+                //(arr[1] as ICommand)?.Execute(null);
             });
             ItemClickCommand = new RelayCommand(async (arg) =>
             {
@@ -67,18 +70,15 @@ namespace Panacea.Modules.Favorites.ViewModels
                 var plg = _core.PluginLoader.LoadedPlugins[pluginName] as IHasFavoritesPlugin;
                 if (plg == null) return;
                 var contentPlugin = (plg as IContentPlugin);
-                await contentPlugin.OpenItemAsync(arg as ServerItem);
+                if (contentPlugin != null)
+                {
+                    await contentPlugin.OpenItemAsync(arg as ServerItem);
+                }
             });
         }
         private void SetupCategories()
         {
             if (_plugin == null) return;
-            //if (_core.UserService.User.Id == null)
-            //{
-            //    window.ThemeManager.GoHome();
-            //    return;
-            //}
-
             var cats = new List<ServerGroupItem>();
             foreach (var plg in _core.PluginLoader.LoadedPlugins)
             {
@@ -112,7 +112,7 @@ namespace Panacea.Modules.Favorites.ViewModels
         }
         public ICommand ItemClickCommand { get; protected set; }
         public ICommand SearchCommand { get; protected set; }
-        public ICommand FavoriteClickCommand { get; protected set; }
+        public AsyncCommand FavoriteClickCommand { get; protected set; }
         public ICommand RefreshCommand { get; protected set; }
     }
 }

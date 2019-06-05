@@ -124,13 +124,15 @@ namespace Panacea.Modules.Favorites
 
         public Task<List<ServerItem>> SearchAsync(string wildcard)
         {
-            return Task.FromResult((_core.PluginLoader.LoadedPlugins[SelectedCategory.Id] as IHasFavoritesPlugin)
+            Items = (_core.PluginLoader.LoadedPlugins[SelectedCategory.Id] as IHasFavoritesPlugin)
                 .Favorites
-                .Where((obj) => obj.Name.ToLower().Contains(wildcard.ToLower())).ToList());
+                .Where((obj) => obj.Name.ToLower().Contains(wildcard.ToLower())).ToList();
+            return Task.FromResult(Items);
         }
 
-        public void Refresh()
+        public async void Refresh()
         {
+            CurrentPage = 1;
             Refreshed?.Invoke(this, EventArgs.Empty);
         }
 
