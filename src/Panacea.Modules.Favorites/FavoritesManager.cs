@@ -49,25 +49,37 @@ namespace Panacea.Modules.Favorites
                 (_core.PluginLoader.LoadedPlugins.First(o => o.Key == pluginName).Value as IHasFavoritesPlugin).Favorites = pluginFavorites.Items;
             }
         }
-        private async Task FavoriteAddAsync(string pluginName, string id)
+        private async Task<bool> FavoriteAddAsync(string pluginName, string id)
         {
-            await _core.HttpClient.GetObjectAsync<object>(
+            ServerResponse res = await _core.HttpClient.GetObjectAsync<object>(
                 "set_favorites/",
                 postData: new List<KeyValuePair<string, string>>()
                 {
-                    new KeyValuePair<string, string>("pluginName", pluginName),
+                    new KeyValuePair<string, string>("plugin", pluginName),
                     new KeyValuePair<string, string>("favorite", id),
                 });
+            if (!res.Success)
+            {
+                _core.Logger.Error(this, res.Error);
+                return false;
+            }
+            return true;
         }
-        public async Task FavoriteRemoveAsync(string pluginName, string id)
-        { 
-            await _core.HttpClient.GetObjectAsync<object>(
+        public async Task<bool> FavoriteRemoveAsync(string pluginName, string id)
+        {
+            ServerResponse res = await _core.HttpClient.GetObjectAsync<object>(
                 "unset_favorites/",
                 postData: new List<KeyValuePair<string, string>>()
                 {
-                    new KeyValuePair<string, string>("pluginName", pluginName),
+                    new KeyValuePair<string, string>("plugin", pluginName),
                     new KeyValuePair<string, string>("favorite", id),
                 });
+            if (!res.Success)
+            {
+                _core.Logger.Error(this, res.Error);
+                return false;
+            }
+            return true;
         }
         public void Clear()
         {
@@ -79,6 +91,7 @@ namespace Panacea.Modules.Favorites
         {
             if (_core.UserService.User?.Id != null)
             {
+                cachedFavorites = new List<PluginFavorites<ServerItem>>();
                 _favoritesResponse = await _core.HttpClient.GetStringAsync("get_favorites/");
                 //FavoritesChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -103,14 +116,17 @@ namespace Panacea.Modules.Favorites
             var obj = JsonSerializer.DeserializeFromString<ServerResponse<List<PluginFavorites<T>>>>(_favoritesResponse);
             if (obj.Result.Any(o => o.Name == pluginName))
             {
-                var itemList = obj.Result.First(o => o.Name == pluginName).Items;
-                plugin.Favorites = itemList as List<ServerItem>;
-                var pf = new PluginFavorites<ServerItem>() { Name = pluginName, Items = itemList as List<ServerItem> };
+                var itemList = obj.Result.First(o => o.Name == pluginName).Items.Cast<ServerItem>().ToList();
+                plugin.Favorites = itemList;
+                var pf = new PluginFavorites<ServerItem>() { Name = pluginName, Items = itemList };
                 cachedFavorites.Add(pf);
             }
             else
             {
-                var pf = new PluginFavorites<ServerItem>() { Name = pluginName, Items = new List<ServerItem>() };
+                var itemList = new List<ServerItem>();
+                var pf = new PluginFavorites<ServerItem>() { Name = pluginName, Items = itemList };
+                plugin.Favorites = itemList;
+                cachedFavorites.Add(pf);
             }
         }
 
@@ -132,27 +148,41 @@ namespace Panacea.Modules.Favorites
                 var pluginFavs = cachedFavorites.First(p => p.Name == pluginName);
                 if (pluginFavs.Items.Any(f => f.Id == item.Id))
                 {
-                    await FavoriteRemoveAsync(pluginName, item.Id);
-                    RemoveFromCache(pluginName, item.Id);
-                    if (_core.TryGetUiManager(out IUiManager _uiManager)){
-                        _uiManager.Toast(_translator.Translate("This item has been removed from your favorites"));
+                    if(await FavoriteRemoveAsync(pluginName, item.Id))
+                    {
+                        RemoveFromCache(pluginName, item.Id);
+                        if (_core.TryGetUiManager(out IUiManager _uiManager)){
+                            _uiManager.Toast(_translator.Translate("This item has been removed from your favorites"));
+                        }
+                        return true;
                     }
-                    return true;
+                    else
+                    {
+                        if (_core.TryGetUiManager(out IUiManager _ui))
+                        {
+                            _ui.Toast(_translator.Translate("Something went wrong when trying to remove from your favorites"));
+                        }
+                        return false;
+                    }
                 }
             }
-            //remove
-            await FavoriteAddAsync(pluginName, item.Id);
-            AddToCache(pluginName, item);
-            if (_core.TryGetUiManager(out IUiManager _ui))
+            if(await FavoriteAddAsync(pluginName, item.Id))
             {
-                _ui.Toast(_translator.Translate("This item has been added to your favorites"));
+                AddToCache(pluginName, item);
+                if (_core.TryGetUiManager(out IUiManager _ui))
+                {
+                    _ui.Toast(_translator.Translate("This item has been added to your favorites"));
+                }
+                return true;
             }
-            return true;
-        }
-
-        public Task<List<T>> GetFavoritesAsync<T>(string pluginName)
-        {
-            throw new NotImplementedException();
+            else
+            {
+                if (_core.TryGetUiManager(out IUiManager _ui))
+                {
+                    _ui.Toast(_translator.Translate("Something went wrong when trying to add to your favorites"));
+                }
+                return false;
+            }
         }
     }
 }
