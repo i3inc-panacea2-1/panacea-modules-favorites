@@ -45,19 +45,19 @@ namespace Panacea.Modules.Favorites
         {
             return Task.CompletedTask;
         }
-        public Task EndInit()
+        public async Task EndInit()
         {
             if (_core.UserService.User.Id != null)
             {
                 try
                 {
-                    _manager.UpdateFavorites();
-                } catch (Exception e)
+                    await _manager.UpdateFavorites();
+                }
+                catch (Exception e)
                 {
                     _core.Logger.Error(this, e.Message);
                 }
             }
-            return Task.CompletedTask;
         }
 
         public void Dispose()
@@ -68,16 +68,19 @@ namespace Panacea.Modules.Favorites
         {
             return Task.CompletedTask;
         }
-        public void Call()
+        public async void Call()
         {
             if (_core.UserService.User.Id == null)
             {
-                if(_core.TryGetUserAccountManager(out IUserAccountManager _userManager)){
-                    _userManager.RequestLoginAsync(_translator.Translate("You must create an account to view favorites"));
+                if (_core.TryGetUserAccountManager(out IUserAccountManager userManager)
+                    && !await userManager.RequestLoginAsync(_translator.Translate("You must create an account to view favorites")))
+                {
+                    return;
                 }
             }
-            if (_core.TryGetUiManager(out IUiManager _ui)){
-                _ui.Navigate(new FavoritesListViewModel(_core, this));
+            if (_core.TryGetUiManager(out IUiManager ui))
+            {
+                ui.Navigate(new FavoritesListViewModel(_core, this));
             }
         }
     }

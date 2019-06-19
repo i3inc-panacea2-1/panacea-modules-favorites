@@ -33,7 +33,8 @@ namespace Panacea.Modules.Favorites
                 var pluginFavorites = cachedFavorites.FirstOrDefault(p => p.Name == pluginName);
                 pluginFavorites.Items.Add(item);
                 Items = pluginFavorites.Items;
-            } else
+            }
+            else
             {
                 var pluginFavorites = new PluginFavorites<ServerItem>() { Name = pluginName, Items = new List<ServerItem>() { item } };
                 Items = pluginFavorites.Items;
@@ -120,7 +121,7 @@ namespace Panacea.Modules.Favorites
                 var pluginName = obj.Key;
                 var plugin = obj.Value as IHasFavoritesPlugin;
                 Type t = plugin.GetContentType();
-                var res = GetType().GetMethod(nameof(SetPluginFavorites)).MakeGenericMethod(t).Invoke(this, new object[] {plugin, pluginName });
+                var res = GetType().GetMethod(nameof(SetPluginFavorites)).MakeGenericMethod(t).Invoke(this, new object[] { plugin, pluginName });
             }
         }
 
@@ -160,10 +161,11 @@ namespace Panacea.Modules.Favorites
                 var pluginFavs = cachedFavorites.First(p => p.Name == pluginName);
                 if (pluginFavs.Items.Any(f => f.Id == item.Id))
                 {
-                    if(await FavoriteRemoveAsync(pluginName, item.Id))
+                    if (await FavoriteRemoveAsync(pluginName, item.Id))
                     {
                         RemoveFromCache(pluginName, item.Id);
-                        if (_core.TryGetUiManager(out IUiManager _uiManager)){
+                        if (_core.TryGetUiManager(out IUiManager _uiManager))
+                        {
                             _uiManager.Toast(_translator.Translate("This item has been removed from your favorites"));
                         }
                         return true;
@@ -178,7 +180,7 @@ namespace Panacea.Modules.Favorites
                     }
                 }
             }
-            if(await FavoriteAddAsync(pluginName, item.Id))
+            if (await FavoriteAddAsync(pluginName, item.Id))
             {
                 AddToCache(pluginName, item);
                 if (_core.TryGetUiManager(out IUiManager _ui))
