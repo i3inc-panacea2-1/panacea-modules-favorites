@@ -19,6 +19,7 @@ namespace Panacea.Modules.Favorites
         PanaceaServices _core;
         private Translator _translator;
         private FavoritesManager _manager;
+        NavigationButtonViewModel _navButton;
         public FavoritesPlugin(PanaceaServices core)
         {
             _core = core;
@@ -58,6 +59,11 @@ namespace Panacea.Modules.Favorites
                     _core.Logger.Error(this, e.Message);
                 }
             }
+            if(_core.TryGetUiManager(out IUiManager ui))
+            {
+                _navButton = new NavigationButtonViewModel();
+                ui.AddNavigationBarControl(_navButton);
+            }
         }
 
         public void Dispose()
@@ -66,6 +72,10 @@ namespace Panacea.Modules.Favorites
         }
         public Task Shutdown()
         {
+            if (_navButton != null && _core.TryGetUiManager(out IUiManager ui))
+            {
+                ui.RemoveMainPageControl(_navButton);
+            }
             return Task.CompletedTask;
         }
         public async void Call()

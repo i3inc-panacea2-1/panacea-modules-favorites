@@ -18,9 +18,9 @@ namespace Panacea.Modules.Favorites.Views
     /// <summary>
     /// Interaction logic for FavoritesList.xaml
     /// </summary>
-    public partial class NavigationButton : UserControl
+    public partial class FavoritesList : UserControl
     {
-        public NavigationButton()
+        public FavoritesList()
         {
             InitializeComponent();
         }
