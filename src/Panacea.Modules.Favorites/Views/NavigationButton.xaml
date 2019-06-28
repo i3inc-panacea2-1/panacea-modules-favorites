@@ -17,6 +17,7 @@
         <converters:MultiValuesToArrayConverter x:Key="manyToOne" />
     </UserControl.Resources>
     <pcontrols:ImageButton
+        Command="{Binding ClickCommand}"
         pcontrols:Material.Icon="favorite_border"
         Foreground="White"
         Text="{multilinguality:Translate 'Favorites',
