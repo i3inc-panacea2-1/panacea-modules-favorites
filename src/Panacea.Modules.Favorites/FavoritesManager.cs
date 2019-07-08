@@ -37,6 +37,7 @@ namespace Panacea.Modules.Favorites
             else
             {
                 var pluginFavorites = new PluginFavorites<ServerItem>() { Name = pluginName, Items = new List<ServerItem>() { item } };
+                cachedFavorites.Add(pluginFavorites);
                 Items = pluginFavorites.Items;
             }
             (_core.PluginLoader.LoadedPlugins.First(o => o.Key == pluginName).Value as IHasFavoritesPlugin).Favorites = Items;

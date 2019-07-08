@@ -59,7 +59,7 @@ namespace Panacea.Modules.Favorites
                     _core.Logger.Error(this, e.Message);
                 }
             }
-            if(_core.TryGetUiManager(out IUiManager ui))
+            if (_core.TryGetUiManager(out IUiManager ui))
             {
                 _navButton = new NavigationButtonViewModel(this);
                 ui.AddNavigationBarControl(_navButton);
