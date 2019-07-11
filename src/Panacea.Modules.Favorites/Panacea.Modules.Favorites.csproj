@@ -146,4 +146,7 @@
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>del $(OutputDir)Panacea.Controls.dll</PostBuildEvent>
+  </PropertyGroup>
 </Project>
